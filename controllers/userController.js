@@ -81,9 +81,13 @@ class UserController {
 
     async delete(request, response) {
         try {
-            response.status(206).json({ status: 'delete-ok' });
+            sanitizeRequest(request);
+            const { id } = request.params;
+            const data = await userModel.delete(id);
+            if (data.success == true)
+                response.status(206).send('El usuario fue eliminado de forma correcta.');
         } catch (e) {
-            response.status(500).send(e);
+            response.status(500).send(e.message);
         }
     }
 

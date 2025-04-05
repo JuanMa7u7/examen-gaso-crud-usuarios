@@ -82,6 +82,14 @@ class UserModel {
 
         return { success: true };
     }
+
+    async delete(id) {
+        const colUsers = dbClient.db.collection('users');
+        const colUserRoles = dbClient.db.collection('user_roles');
+        await colUsers.deleteOne({ _id: new ObjectId(id) });
+        await colUserRoles.deleteOne({ user_id: new ObjectId(id) });
+        return { success: true };
+    }
 }
 
 export default new UserModel;
