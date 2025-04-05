@@ -83,6 +83,52 @@ class UserModel {
         return { success: true };
     }
 
+    async patch(id, data) {
+        const colUsers = dbClient.db.collection('users');
+        // SI SE ESPECIFICO UN NUEVO EMAIL, SE VERIFICA QUE NO ESTE UN USO
+        if (typeof data.email != 'undefined') {
+            const requestEmailIsAlreadyRegistered = await colUsers
+                .find({ "email": data.email, "_id": { "$ne": new ObjectId(id) } })
+                .project({ "email": true })
+                .limit(1)
+                .toArray();
+            if (requestEmailIsAlreadyRegistered.length > 0)
+                throw new Error('El email ya se encuentra registrado.');
+        }
+
+        let roleID;
+        if (typeof data.role != 'undefined') {
+            const colRoles = dbClient.db.collection('roles');
+            const requestRole = await colRoles
+                .find({ "name": data.role })
+                .project({ "_id": true })
+                .limit(1)
+                .toArray();
+            if (requestRole.length == 0)
+                throw new Error('El rol especificado no existe.');
+            roleID = requestRole[0]._id;
+        }
+
+        const userData = await colUsers.findOne({ _id: new ObjectId(id) });
+        const dataUser = {
+            name: data.name || undefined,
+            email: data.email || undefined,
+            password: data.password || undefined
+        };
+        Object.entries(dataUser).forEach(([key, value]) => {
+            if (value)
+                userData[key] = value;
+        });
+
+        await colUsers.updateOne({ _id: new ObjectId(id) }, { "$set": userData });
+        if (roleID) {
+            const colUserRoles = dbClient.db.collection('user_roles');
+            await colUserRoles.updateOne({ user_id: new ObjectId(id) }, { "$set": { role_id: roleID } });
+        }
+
+        return { success: true };
+    }
+
     async delete(id) {
         const colUsers = dbClient.db.collection('users');
         const colUserRoles = dbClient.db.collection('user_roles');

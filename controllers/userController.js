@@ -79,6 +79,42 @@ class UserController {
         }
     }
 
+    async patch(request, response) {
+        try {
+            sanitizeRequest(request);
+            const { id } = request.params;
+            const BODY = request.body || {};
+            // SE VALIDA EL CUERPO DE LA PETICION
+            if (typeof BODY.name != 'undefined')
+                if (typeof BODY.name != 'string')
+                    throw new Error('El campo nombre debe de ser una cadena de texto.');
+            if (typeof BODY.email != 'undefined') {
+                if (typeof BODY.email != 'string')
+                    throw new Error('El campo email debe de ser una cadena de texto.');
+                if (validateEmailFormat(BODY.email) == false)
+                    throw new Error('El email no tiene un formato correcto.');
+            }
+            if (typeof BODY.password != 'undefined') {
+                if (typeof BODY.password != 'string')
+                    throw new Error('El campo password debe de ser una cadena de texto.');
+                if (validatePasswordSecurity(BODY.password) == false)
+                    throw new Error('La contraseña no cumple con los requisitos de seguridad (mínimo 8 caracteres, mayúsculas, minúsculas y símbolos).');
+            }
+            if (typeof BODY.role != 'undefined') {
+                if (typeof BODY.role != 'string')
+                    throw new Error('El campo role debe de ser una cadena de texto.');
+            }
+
+            const data = await userModel.patch(id, BODY);
+            if (data.success == true)
+                response.status(200).send('El usuario se actualizo de forma correcta.');
+            else
+                throw new Error('Error al actualizar el usuario.');
+        } catch (e) {
+            response.status(500).send(e.message);
+        }
+    }
+
     async delete(request, response) {
         try {
             sanitizeRequest(request);
