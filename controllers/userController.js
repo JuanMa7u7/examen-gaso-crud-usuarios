@@ -93,17 +93,31 @@ class UserController {
 
     async getAll(request, response) {
         try {
-            response.status(201).json({ status: 'getall-ok' });
+            sanitizeRequest(request);
+            const dataFilters = {
+                name: request.query.name,
+                email: request.query.email,
+                creation_date: request.query.date
+            }
+            const page = parseInt(request.query.page);
+            const limit = parseInt(request.query.limit);
+            const sort = request.query.sort;
+
+            const data = await userModel.getAll({ data: dataFilters, page, limit, sort });
+            response.status(200).json(data);
         } catch (e) {
-            response.status(500).send(e);
+            response.status(500).send(e.message);
         }
     }
 
     async getOne(request, response) {
         try {
-            response.status(201).json({ status: 'getone-ok' });
+            sanitizeRequest(request);
+            const { id } = request.params;
+            const data = await userModel.getOne(id);
+            response.status(200).json(data);
         } catch (e) {
-            response.status(500).send(e);
+            response.status(500).send(e.message);
         }
     }
 }

@@ -90,6 +90,62 @@ class UserModel {
         await colUserRoles.deleteOne({ user_id: new ObjectId(id) });
         return { success: true };
     }
+
+    async getAll(filters) {
+        const colUsers = dbClient.db.collection('users');
+        const colUserRoles = dbClient.db.collection('user_roles');
+        const colRoles = dbClient.db.collection('roles');
+
+        const PIPELINE = [];
+        const matchPipeline = {}
+        Object.entries(filters.data).forEach(([key, value]) => {
+            if (value)
+                matchPipeline[key] = { $regex: value, $options: 'i' };
+        });
+        if (Object.entries(matchPipeline).length >= 1)
+            PIPELINE.push({ $match: matchPipeline });
+        if (filters.sort)
+            PIPELINE.push({ $sort: { [filters.sort]: 1 } });
+        if (!isNaN(filters.limit) && !isNaN(filters.page) && filters.page >= 1)
+            PIPELINE.push({ $skip: (filters.page - 1) * filters.limit });
+        if (!isNaN(filters.limit))
+            PIPELINE.push({ $limit: filters.limit });
+        console.log(PIPELINE);
+        const userDataQuery = await colUsers.aggregate(PIPELINE);
+        const userData = [];
+        for await (let user of userDataQuery) {
+            const roleIDQuery = await colUserRoles
+                .find({ user_id: user._id })
+                .project({ role_id: true })
+                .toArray();
+            const roleID = roleIDQuery[0].role_id;
+            const roleData = await colRoles
+                .find({ _id: roleID })
+                .limit(1)
+                .toArray();
+            delete roleData[0]._id;
+            userData.push({
+                ...user,
+                role: { ...roleData[0] }
+            });
+        }
+
+        return userData;
+    }
+
+    async getOne(id) {
+        const colUsers = dbClient.db.collection('users');
+        const colUserRoles = dbClient.db.collection('user_roles');
+        const colRoles = dbClient.db.collection('roles');
+
+        const userData = await colUsers.findOne({ _id: new ObjectId(id) });
+        const roleUserQuery = await colUserRoles.findOne({ user_id: userData._id });
+        const roleID = roleUserQuery.role_id;
+        const roleData = await colRoles.findOne({ _id: roleID });
+        delete roleData._id;
+
+        return { ...userData, role: { ...roleData } };
+    }
 }
 
 export default new UserModel;
