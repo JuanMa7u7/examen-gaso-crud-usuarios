@@ -156,7 +156,6 @@ class UserModel {
             PIPELINE.push({ $skip: (filters.page - 1) * filters.limit });
         if (!isNaN(filters.limit))
             PIPELINE.push({ $limit: filters.limit });
-        console.log(PIPELINE);
         const userDataQuery = await colUsers.aggregate(PIPELINE);
         const userData = [];
         for await (let user of userDataQuery) {

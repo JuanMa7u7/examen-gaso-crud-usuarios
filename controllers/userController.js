@@ -1,4 +1,5 @@
 import userModel from "../models/userModel.js";
+import verifyJWT from "../helpers/verifyJWT.js";
 import sanitizeRequest from "../helpers/sanitizeRequest.js";
 import validateEmailFormat from "../helpers/validateEmailFormat.js";
 import validatePasswordSecurity from "../helpers/validatePasswordSecurity.js";
@@ -10,6 +11,11 @@ class UserController {
     }
 
     async create(request, response) {
+        verifyJWT(request, response);
+        if (request.userTKN.permissions.create != true) {
+            response.status(403).send('Acceso denegado');
+            return;
+        }
         try {
             sanitizeRequest(request);
             const BODY = request.body;
@@ -44,6 +50,11 @@ class UserController {
     }
 
     async update(request, response) {
+        verifyJWT(request, response);
+        if (request.userTKN.permissions.update != true) {
+            response.status(403).send('Acceso denegado');
+            return;
+        }
         try {
             sanitizeRequest(request);
             const { id } = request.params;
@@ -80,6 +91,11 @@ class UserController {
     }
 
     async patch(request, response) {
+        verifyJWT(request, response);
+        if (request.userTKN.permissions.update != true) {
+            response.status(403).send('Acceso denegado');
+            return;
+        }
         try {
             sanitizeRequest(request);
             const { id } = request.params;
@@ -116,6 +132,11 @@ class UserController {
     }
 
     async delete(request, response) {
+        verifyJWT(request, response);
+        if (request.userTKN.permissions.delete != true) {
+            response.status(403).send('Acceso denegado');
+            return;
+        }
         try {
             sanitizeRequest(request);
             const { id } = request.params;
@@ -128,6 +149,11 @@ class UserController {
     }
 
     async getAll(request, response) {
+        verifyJWT(request, response);
+        if (request.userTKN.permissions.read != true) {
+            response.status(403).send('Acceso denegado');
+            return;
+        }
         try {
             sanitizeRequest(request);
             const dataFilters = {
@@ -147,6 +173,11 @@ class UserController {
     }
 
     async getOne(request, response) {
+        verifyJWT(request, response);
+        if (request.userTKN.permissions.read != true) {
+            response.status(403).send('Acceso denegado');
+            return;
+        }
         try {
             sanitizeRequest(request);
             const { id } = request.params;
