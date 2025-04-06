@@ -3,6 +3,7 @@ import dbClient from "../config/dbClient.js"
 class AuthModel {
 
     async login(email) {
+        await dbClient.connectDB();
         const colUsers = dbClient.db.collection('users');
         const colUserRoles = dbClient.db.collection('user_roles');
         const colRoles = dbClient.db.collection('roles');

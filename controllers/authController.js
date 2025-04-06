@@ -12,13 +12,16 @@ class AuthController {
     async login(request, response) {
         try {
             sanitizeRequest(request);
-            const { email, password } = request.body
-            const user = await authModel.login(email, password);
+            const email = request.body.email || '';
+            const password = request.body.password || '';
+            const user = await authModel.login(email);
             if (!user) {
-                return res.status(401).send('Email o contraseña no validos.');
+                response.status(401).send('Email o contraseña no validos.');
+                return;
             }
             if (user.password !== password) {
-                return res.status(401).send('Email o contraseña no validos.');
+                response.status(401).send('Email o contraseña no validos.');
+                return;
             }
 
             const token = jwt.sign(

@@ -13,7 +13,7 @@ class DBClient {
         try {
             await this.client.connect();
             this.db = this.client.db(process.env.DB_MODEL);
-            console.log("Conectado al servidor de base de datos");
+            // console.log("Conectado al servidor de base de datos");
         } catch (e) {
             console.log(e);
         }
